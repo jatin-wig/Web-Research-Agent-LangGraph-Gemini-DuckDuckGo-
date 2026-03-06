@@ -1,7 +1,26 @@
+import os
+
 try:
     from ddgs import DDGS
 except ImportError:
     from duckduckgo_search import DDGS
+
+from tavily import TavilyClient
+
+
+def _tavily_search(query, max_results=5):
+    client = TavilyClient()
+    response = client.search(
+        query=query,
+        max_results=max_results,
+        search_depth="advanced",
+    )
+    links = []
+    for result in response.get("results", []):
+        url = result.get("url")
+        if url and url.startswith("http"):
+            links.append(url)
+    return links
 
 
 def _duckduckgo_search(query, max_results=5):
@@ -30,11 +49,13 @@ def _duckduckgo_search(query, max_results=5):
 
 
 def web_search(queries):
+    provider = os.environ.get("SEARCH_PROVIDER", "duckduckgo").lower()
+    search_fn = _tavily_search if provider == "tavily" else _duckduckgo_search
     urls = []
 
     for query in queries:
         try:
-            urls.extend(_duckduckgo_search(query, max_results=5))
+            urls.extend(search_fn(query, max_results=5))
         except Exception:
             continue
 
