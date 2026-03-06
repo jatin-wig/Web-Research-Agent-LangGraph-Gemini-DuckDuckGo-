@@ -2,6 +2,7 @@ langgraph
 langchain
 langchain-google-genai
 duckduckgo-search
+tavily-python
 beautifulsoup4
 requests
 streamlit
